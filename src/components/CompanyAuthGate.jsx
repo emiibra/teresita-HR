@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChefHat } from "lucide-react";
+import { Camera, ChefHat } from "lucide-react";
 import { isSupabaseConfigured, supabase, LS_COMPANY_ID } from "../lib/supabaseClient";
 import { useTeresitaSupabase } from "../context/TeresitaSupabaseContext";
 import {
@@ -8,6 +8,7 @@ import {
   signInCompany,
   signUpCompany
 } from "../services/teresitaSupabase";
+import { savePendingBranding } from "../utils/restaurantBranding";
 
 async function hardSignOutAndReload() {
   try {
@@ -46,6 +47,7 @@ function CompanyLoginScreen({ onDone }) {
   const [mode, setMode] = useState("signin");
   const [companyName, setCompanyName] = useState("");
   const [fullName, setFullName] = useState("");
+  const [brandImage, setBrandImage] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -75,6 +77,9 @@ function CompanyLoginScreen({ onDone }) {
           companyName: companyName.trim(),
           fullName: fullName.trim() || companyName.trim()
         });
+        if (brandImage) {
+          savePendingBranding({ image: brandImage });
+        }
       } else {
         if (!email.trim() || !password) {
           setError("Correo y contraseña son obligatorios.");
@@ -91,16 +96,31 @@ function CompanyLoginScreen({ onDone }) {
   }
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-8">
-      <div className="rounded-3xl border border-peruRed/20 bg-white p-6 shadow-bento">
-        <div className="mb-4 flex items-center gap-2 text-peruRed">
+    <div className="mx-auto grid min-h-[78vh] max-w-5xl items-center gap-8 px-4 py-8 lg:grid-cols-[1.05fr_0.95fr]">
+      <section className="hidden overflow-hidden rounded-[2rem] bg-coffee p-8 text-white shadow-bento lg:block">
+        <div className="mb-16 flex items-center gap-2 text-peruMustard">
           <ChefHat size={28} aria-hidden />
-          <h1 className="text-xl font-bold">Teresita — acceso empresa</h1>
+          <span className="text-sm font-bold uppercase tracking-[0.2em]">Teresita para restaurantes</span>
+        </div>
+        <p className="max-w-md text-4xl font-black leading-tight">
+          La operación de tu restaurante, con tu propio nombre y esencia.
+        </p>
+        <p className="mt-5 max-w-sm text-sm leading-6 text-white/70">
+          Crea un espacio para tu equipo, organiza turnos y deja que cada sede trabaje con una identidad propia.
+        </p>
+        <div className="mt-12 grid grid-cols-3 gap-3 text-xs text-white/70">
+          <div className="border-l border-peruMustard/60 pl-3">Personal</div>
+          <div className="border-l border-peruMustard/60 pl-3">Turnos</div>
+          <div className="border-l border-peruMustard/60 pl-3">Comandas</div>
+        </div>
+      </section>
+      <div className="rounded-3xl border border-peruRed/20 bg-white p-6 shadow-bento md:p-8">
+        <div className="mb-4 flex items-center gap-2 text-peruRed lg:hidden">
+          <ChefHat size={28} aria-hidden />
+          <h1 className="text-xl font-bold">Teresita para restaurantes</h1>
         </div>
         <p className="mb-4 text-sm text-coffee/75">
-          <strong>Crear empresa</strong> = cuenta nueva (cualquier correo tuyo).{" "}
-          <strong>Entrar</strong> = si ya tienes cuenta. Luego crea el{" "}
-          <strong>PIN de gerente (6 dígitos)</strong>.
+          <strong>Crear restaurante</strong> abre un espacio independiente para tu equipo. Puedes añadir su nombre y una imagen de marca.
         </p>
         <div className="mb-4 flex gap-2">
           <button
@@ -141,6 +161,35 @@ function CompanyLoginScreen({ onDone }) {
                   onChange={(e) => setFullName(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-peruRed/25 px-3 py-2 text-sm"
                 />
+              </label>
+              <label className="block text-xs font-semibold text-coffee">
+                Imagen del restaurante (opcional)
+                <span className="mt-1 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-peruRed/30 bg-bone/50 p-3">
+                  {brandImage ? (
+                    <img src={brandImage} alt="Vista previa del restaurante" className="h-12 w-12 rounded-lg object-cover" />
+                  ) : (
+                    <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-peruRed/10 text-peruRed">
+                      <Camera size={20} aria-hidden />
+                    </span>
+                  )}
+                  <span className="text-xs font-normal text-coffee/70">Sube una foto, logo o fachada</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="sr-only"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 2 * 1024 * 1024) {
+                        setError("La imagen debe pesar menos de 2 MB.");
+                        return;
+                      }
+                      const reader = new FileReader();
+                      reader.onload = () => setBrandImage(String(reader.result));
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </span>
               </label>
             </>
           ) : null}

@@ -40,6 +40,7 @@ import logoTeresita from "./data/descarga__2_.png";
 import * as XLSX from "xlsx";
 import { useTeresitaSupabase } from "./context/TeresitaSupabaseContext.jsx";
 import { LS_COMPANY_ID } from "./lib/supabaseClient.js";
+import { applyPendingBranding } from "./utils/restaurantBranding.js";
 import {
   createWorkerWithInvite,
   deleteWorkerWithCode,
@@ -1747,6 +1748,10 @@ function HistorialEdicionesAdmin({ historialPorColab, personas }) {
 
 export default function App() {
   const supa = useTeresitaSupabase();
+  const [restaurantBranding, setRestaurantBranding] = useState(null);
+  useEffect(() => {
+    setRestaurantBranding(applyPendingBranding(supa.companyId));
+  }, [supa.companyId]);
   // Full page load always starts on Personal. Admin is never restored from localStorage;
   // manager PIN must be entered again after refresh (unlock does not survive reload).
   const [vista, setVista] = useState("staff");
@@ -4260,17 +4265,22 @@ export default function App() {
               <div className="flex items-center gap-4">
                 <div className="flex h-16 w-56 items-center justify-center rounded-2xl bg-bone/80 px-3 ring-1 ring-peruRed/10">
                   <img
-                    src={logoTeresita}
-                    alt="Logo Teresita El Legado"
-                    className="h-12 w-full object-contain"
+                    src={restaurantBranding?.image || logoTeresita}
+                    alt={`Imagen de ${supa.companyName || "tu restaurante"}`}
+                    className={`h-12 w-full ${restaurantBranding?.image ? "rounded-xl object-cover" : "object-contain"}`}
                   />
                 </div>
                 <div>
-                  <p className="text-xl font-bold leading-tight text-peruRed">Teresita El Legado</p>
+                  <p className="text-xl font-bold leading-tight text-peruRed">
+                    {supa.companyName || "Teresita para restaurantes"}
+                  </p>
+                  <p className="mt-1 text-xs font-medium uppercase tracking-[0.14em] text-coffee/55">
+                    Espacio operativo
+                  </p>
                 </div>
               </div>
               <span className="rounded-full bg-peruMustard/25 px-3 py-1 text-xs font-semibold text-coffee">
-                Comas y Surquillo
+                Equipo y turnos
               </span>
             </div>
           </div>
