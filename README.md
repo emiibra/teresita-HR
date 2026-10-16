@@ -18,6 +18,7 @@ Ver **`supabase/README.md`** — orden:
 1. `00_RESET_DATABASE.sql`
 2. `01_SETUP_TERESITA.sql`
 3. `02_VERIFY.sql`
+4. `05_RESTAURANT_BRANDING.sql` (imagen/logo por restaurante)
 
 ## Estructura del código
 

@@ -1,4 +1,4 @@
-# Teresita HR — Supabase (solo 3 archivos SQL)
+# Teresita HR — Supabase
 
 ## Orden exacto en SQL Editor (wipe limpio + test)
 
@@ -9,6 +9,7 @@
 | 3 | `03_FIX_MISSING_PROFILE.sql` | Perfil + delete codes (recomendado siempre) |
 | 4 | `02_VERIFY.sql` | Comprueba tablas |
 | 5 | `04_SEED_TEST_TEAM.sql` | **Después** de Crear empresa en la app: 6 trabajadores + marcaciones + comandas |
+| 6 | `05_RESTAURANT_BRANDING.sql` | Activa imagen/logo persistente por restaurante |
 
 Guía limpia: **`RESET_AND_TEST.md`**  
 Seed team: **`04_SEED_TEST_TEAM.sql`** (PINs 111111…666666)
@@ -26,9 +27,10 @@ REACT_APP_ADMIN_NOTIFY_EMAIL=tu-correo@ejemplo.com
 ## Flujo de la app
 
 1. **Crear empresa** (cualquier correo) o **Entrar**
-2. Crear PIN de gerente (6 dígitos)
-3. Administrador → agregar trabajador → enlace PIN
-4. Trabajador → enlace → PIN → Vista Personal
+2. Añadir nombre e imagen/logo del restaurante (opcional)
+3. Crear PIN de gerente (6 dígitos)
+4. Administrador → agregar trabajador → enlace PIN
+5. Trabajador → enlace → PIN → Vista Personal
 
 ## Correos (Resend — gratis para tu volumen)
 

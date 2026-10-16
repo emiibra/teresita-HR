@@ -40,7 +40,7 @@ import logoTeresita from "./data/descarga__2_.png";
 import * as XLSX from "xlsx";
 import { useTeresitaSupabase } from "./context/TeresitaSupabaseContext.jsx";
 import { LS_COMPANY_ID } from "./lib/supabaseClient.js";
-import { applyPendingBranding } from "./utils/restaurantBranding.js";
+import { applyPendingBranding, saveBranding } from "./utils/restaurantBranding.js";
 import {
   createWorkerWithInvite,
   deleteWorkerWithCode,
@@ -53,6 +53,7 @@ import {
   loadComandasCompany,
   registrarMarcacionWorker,
   registrarComandaAdmin,
+  uploadCompanyBranding,
   verifyManagerPin,
   verifyWorkerPin
 } from "./services/teresitaSupabase.js";
@@ -1750,7 +1751,26 @@ export default function App() {
   const supa = useTeresitaSupabase();
   const [restaurantBranding, setRestaurantBranding] = useState(null);
   useEffect(() => {
-    setRestaurantBranding(applyPendingBranding(supa.companyId));
+    let cancelled = false;
+    async function syncBranding() {
+      const localBranding = applyPendingBranding(supa.companyId);
+      setRestaurantBranding(localBranding);
+      if (!supa.companyId || !localBranding?.image?.startsWith("data:")) return;
+      try {
+        const publicUrl = await uploadCompanyBranding(supa.companyId, localBranding.image);
+        if (!cancelled && publicUrl) {
+          const synced = { image: publicUrl };
+          saveBranding(supa.companyId, synced);
+          setRestaurantBranding(synced);
+        }
+      } catch (error) {
+        console.warn("Restaurant branding upload skipped:", error);
+      }
+    }
+    syncBranding();
+    return () => {
+      cancelled = true;
+    };
   }, [supa.companyId]);
   // Full page load always starts on Personal. Admin is never restored from localStorage;
   // manager PIN must be entered again after refresh (unlock does not survive reload).

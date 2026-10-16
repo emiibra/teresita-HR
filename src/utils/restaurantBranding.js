@@ -35,3 +35,12 @@ export function readBranding(companyId) {
   if (!companyId) return null;
   return readJson(`${BRANDING_PREFIX}${companyId}`);
 }
+
+export function saveBranding(companyId, branding) {
+  if (!companyId || !branding) return;
+  try {
+    localStorage.setItem(`${BRANDING_PREFIX}${companyId}`, JSON.stringify(branding));
+  } catch {
+    // The remote URL remains available even if local storage is unavailable.
+  }
+}

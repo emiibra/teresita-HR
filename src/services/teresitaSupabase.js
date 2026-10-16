@@ -90,21 +90,50 @@ export async function fetchMyProfile(userId) {
   if (!uid) return null;
   let { data, error } = await supabase
     .from("profiles")
-    .select("id, company_id, full_name, role, companies(id, name, admin_notification_email)")
+    .select("id, company_id, full_name, role, companies(id, name, admin_notification_email, logo_url)")
     .eq("id", uid)
     .maybeSingle();
-  if (error && String(error.message || "").includes("admin_notification_email")) {
+  if (
+    error &&
+    (String(error.message || "").includes("admin_notification_email") ||
+      String(error.message || "").includes("logo_url"))
+  ) {
     ({ data, error } = await supabase
       .from("profiles")
-      .select("id, company_id, full_name, role, companies(id, name)")
+      .select("id, company_id, full_name, role, companies(id, name, admin_notification_email)")
       .eq("id", uid)
       .maybeSingle());
+    if (error && String(error.message || "").includes("admin_notification_email")) {
+      ({ data, error } = await supabase
+        .from("profiles")
+        .select("id, company_id, full_name, role, companies(id, name)")
+        .eq("id", uid)
+        .maybeSingle());
+    }
   }
   throwIfError(error);
   if (data?.company_id) {
     localStorage.setItem(LS_COMPANY_ID, data.company_id);
   }
   return data;
+}
+
+export async function uploadCompanyBranding(companyId, dataUrl) {
+  if (!supabase || !companyId || !dataUrl?.startsWith("data:")) return null;
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  const extension = blob.type.split("/")[1] || "jpeg";
+  const path = `${companyId}/logo.${extension}`;
+  const { error: uploadError } = await supabase.storage
+    .from("restaurant-branding")
+    .upload(path, blob, { contentType: blob.type, upsert: true });
+  throwIfError(uploadError);
+  const { data } = supabase.storage.from("restaurant-branding").getPublicUrl(path);
+  const publicUrl = data?.publicUrl || null;
+  if (!publicUrl) return null;
+  const { error } = await supabase.rpc("set_company_logo_url", { p_logo_url: publicUrl });
+  throwIfError(error);
+  return publicUrl;
 }
 
 export async function managerPinIsSet() {
